@@ -1,0 +1,10 @@
+---
+- name: "display  informations "
+  hosts: webservers
+  gather_facts: yes
+
+  tasks:
+  - name: "display informations about dns ip os distribution version"
+    debug:
+      msg:
+      - "OS : {{ ansible_facts['os_family'] }} "

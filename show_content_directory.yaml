@@ -1,0 +1,14 @@
+---
+- name: "diplay content of directory"
+  hosts: webservers
+  gather_facts: yes
+
+
+  tasks:
+  - name: "show content of /etc "
+    command: "ls /etc/"
+    register: dir_out
+
+  - debug:
+      msg: "{{dir_out.stdout_lines}}"
+

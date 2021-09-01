@@ -1,0 +1,19 @@
+---
+- name: update sudoers
+  hosts: webservers
+  become: yes
+  tasks:
+     - name: Ansible Lineinfile Multiple Lines
+       lineinfile:
+          path: /etc/sudoers
+          # Line to Search/Match against
+          regexp: '{{item.From}}'
+          # Line to Replace with
+          line: '{{item.To}}'
+          #backrefs: yes
+          state: present
+          validate: /usr/sbin/visudo -cf %s
+       with_items:
+          - { From: "^lina", To: "lina		ALL=(ALL) NOPASSWD:ALL" }
+          - { From: "^nour" , To: "nour		ALL=(ALL) NOPASSWD:ALL" }
+

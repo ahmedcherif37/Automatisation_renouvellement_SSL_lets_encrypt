@@ -1,0 +1,23 @@
+# ce script permet de créer un groupe admin et d'affecter des utilisteurs à ce groupe
+--- 
+- name: Add group admin and affect user to this group 
+  hosts: webservers 
+  gather_facts: yes 
+  become: yes 
+  tasks: 
+  
+  - name: Add group admin to remote server
+    group: 
+      name: admin 
+      gid: 1099 
+      state: present 
+  
+  - name: Add user to group admin to remote server
+    user: 
+     name: "{{ item }}" 
+     groups: admin 
+     append: yes 
+    with_items: 
+      - ansadmin 
+      - ahmed
+

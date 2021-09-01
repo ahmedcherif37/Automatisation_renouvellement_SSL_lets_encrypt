@@ -1,0 +1,28 @@
+# creation d'un dossier de partage
+--- 
+- name: Add share directory 
+  hosts: webservers 
+  gather_facts: yes 
+  become: yes 
+  
+  tasks:
+
+  # create a directory if it doesn't exist for Debian OS
+  - name: create a share directory if it doesn't exist 
+    file: 
+      path: /etc/ssl/certs/stecherif
+      state: directory 
+      mode: 0750 
+      owner: root 
+      group: 1099
+    when: ansible_facts['os_family'] == "Debian"
+  
+  # create a directory if it doesn't exist for Redhat
+  - name: create a share directory if it doesn't exist 
+    file: 
+      path: /etc/pki/tls/certs/stecherif
+      state: directory 
+      mode: 0750 
+      owner: root 
+      group: 1099
+    when: ansible_facts['os_family'] == "RedHat"

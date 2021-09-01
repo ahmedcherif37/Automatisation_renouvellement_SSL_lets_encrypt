@@ -1,0 +1,3 @@
+users_password_nour: "{{ vault_users_password_nour }}"
+users_password_lina: "{{ vault_users_password_lina }}"
+

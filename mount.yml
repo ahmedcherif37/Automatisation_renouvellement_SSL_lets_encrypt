@@ -1,0 +1,33 @@
+# ce playbook permet de faire le montage entre le dossier de partage de serveur avec les Vms clients
+--- 
+- name: add new mount 
+  hosts: webservers
+  gather_facts: yes 
+  become: yes 
+  tasks: 
+  - name: add line in file 
+    lineinfile: 
+      path: /etc/fstab 
+      line: ' # Montage Letsencrypt'
+ 
+  - name: mount the nfsshare in debian vm
+    mount: 
+      fstype: nfs4 
+      opts: ro,exec,auto,actimeo=3 
+      dump: 0 
+      passno: 0 
+      state: mounted 
+      src: srvadmin.stecherif.fr:/etc/ssl/certs/stecherif/
+      path: /etc/ssl/certs/stecherif
+    when: ansible_facts['os_family'] == "Debian"
+
+  - name: mount the nfsshare in centos vm
+    mount:
+      fstype: nfs4
+      opts: ro,exec,auto,actimeo=3
+      dump: 0
+      passno: 0
+      state: mounted
+      src: srvadmin.stecherif.fr:/etc/ssl/certs/stecherif/
+      path: /etc/pki/tls/certs/stecherif
+    when: ansible_facts['os_family'] == "RedHat"

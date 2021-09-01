@@ -1,0 +1,16 @@
+---
+- name: "display  informations "
+  hosts: webservers
+  gather_facts: yes
+  
+  tasks:
+  - name: "display informations about dns ip os distribution version"
+    debug:
+      msg: 
+      - "host: {{ ansible_fqdn }} "
+      - "IP: {{ ansible_default_ipv4.address}} "
+      - "OS: {{ hostvars[inventory_hostname].ansible_distribution }}"
+      - "major version:{{ hostvars[inventory_hostname].ansible_distribution_major_version }}"
+      - "version: {{ hostvars[inventory_hostname].ansible_distribution_version }}"
+      - "more: {{ hostvars[inventory_hostname].ansible_distribution_release }}"
+
