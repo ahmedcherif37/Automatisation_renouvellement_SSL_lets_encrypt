@@ -59,10 +59,92 @@ Ces identifiants peuvent y être obtenus :
 OVH Europe
 Le résultat de l’API est le suivant :
 <div align="center">
-    <img src="images/EU.API.OVH.com.png" alt="api.ovh" width="80%" height="80%">
+    <img src="images/EU.API.OVH.png" alt="api.ovh" width="80%" height="80%">
 </div>
+Définissons maintenant le fichier .ovhapi qui contient les identifiants de l'API OVH utilisés par Certbot.
+> nano .ovhapi
+
+Le fichier contient les éléments suivants:
+```
+dns_ovh_endpoint = ovh-eu
+dns_ovh_application_key  = xxxxxxxxxxxxxxxxxxxx
+dns_ovh_application_secret  = xxxxxxxxxxxxxxxxxxxxx
+dns_ovh_consumer_key  = xxxxxxxxxxxxxxxxxxxxxxxxx
+```
+> chmod 600 .ovhapi
+
+### 5-\ Génération du certificat SSL Wildcard
+
+La génération des certificats se fait comme suit :
+> sudo certbot certonly   --dns-ovh   --dns-ovh-credentials ~/.ovhapi   -m xxxxxxxxx@gmail.com   -d *.stecherif.fr   --dns-ovh-propagation-seconds 300   --agree-tos
+
+Pour Vérifier les certificats crées il suffit de :
+> sudo ls /etc/letsencrypt/live/stecherif.fr/
+
+### 6-\ Script Crontab pour la génération de certificats SSL Wildcard
+Nous allons utiliser crontab afin de pouvoir renouveler nos certificats automatiquement tous les deux mois.
+En premier lieu commençant par créer notre script bash renovCerts.sh
+> mkdir /letsencrypt
+> nano /letsencrypt/renovCerts.sh
+
+Le contenu du script est le suivant :
+```
+#!/bin/bash
+ certbot certonly   --dns-ovh   --dns-ovh-credentials ~/.ovhapi   -m xxxxxxxx@gmail.com   -d *.stecherif.fr   --dns-ovh-propagation-seconds 300  --agree-tos  --non-interactive
+chmod +x /letsencrypt/renovCerts.sh
+```
+
+### 7-\ Expiration et Renouvellement
+Pour vérifier la validité du certificat il suffit de taper la commande suivante:
+> cd /etc/letsencrypt/live/stecherif.fr/ 
+> openssl x509 -dates -noout < cert.pem
+
+### 8-\ Validité du certificat actuel  : 24 Novembre 2021
+> notBefore=Aug 26 13:56:16 2021 GMT
+> notAfter=Nov 24 13:56:15 2021 GMT 
+
+### 9-\ Renouvellement
+Comme décrit précédemment le renouvellement des certificats est planifié par une tache cron. Cette tâche doit s'exécuter le 23 des mois Fevrier, Mai, Aout, Novembre à 09h30
+crontab -e
+> 30 09 23 Feb,May,Aug,Nov * /letsencrypt/renovCerts.sh > renovCerts.log 2>&1
+En cas où on a besoin de renouveler manuellement il suffit d'exécuter la commande suivante :
+> certbot certonly   --dns-ovh   --dns-ovh-credentials ~/.ovhapi   -m xxxxxxxx@gmail.com   -d *.stecherif.fr   --dns-ovh-propagation-seconds 300  --agree-tos  --non-interactive
+
+puis copier le contenu de /etc/letsencrypt/archive/stecherif.fr dans /etc/ssl/certs/stecherif/
+> cp -R /etc/letsencrypt/archive/stecherif.fr/* /etc/ssl/certs/stecherif/
+
+### 10-\ Copie automatique des certificats vers le dossier de partage
+Ce script python permet de vérifier les derniers certificats créer par letsencrypt les copier et les coller vers le dossier de partage
+```
+#!/usr/bin/env python
+# ce script  permet de parcourir le dossier des certificats letsencrypt et de verifier si il ya un certificat generer la copier et la coller dans le dossier de partage
+# importing the required modules
+import  os, os.path, time
+from datetime import datetime
+import shutil
+
+files = os.listdir("/etc/letsencrypt/archive/stecherif.fr")
+
+x= datetime.today().strftime('%Y-%m-%d')
+#print(x)
 
 
+for filename in files:
+        file = "/etc/letsencrypt/archive/stecherif.fr/"+ filename
+        y= time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(file)))
+        y=y[-4:]+"-"+y[0:2]+"-"+y[3:5]
+        if x == y:
+                if filename[0] == "f":
+                        #print(filename)
+                        destination="/etc/ssl/certs/stecherif/fullchain1.pem"
+                        shutil.copyfile(file, destination)
+                if filename[0] == "p":
+                        #print(filename)
+                        destination="/etc/ssl/certs/stecherif/privkey1.pem"
+                        shutil.copyfile(file, destination)
+```
+Ce script est lancé par un cron après la création des certificats ce script va être lancer automatiquement :
+> 00 10 23 Feb,May,Aug,Nov * /script_python/copy_file.py
 
 1. Inventaire des serveurs (distribution linux redhat,debian, centos, ubuntu)
 2. Inventaire des serveurs web installé (apache, nginx et tomcat)
