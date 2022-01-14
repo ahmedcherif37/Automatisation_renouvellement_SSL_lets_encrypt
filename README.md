@@ -9,7 +9,58 @@ Le défi vous demande de prouver que vous contrôlez le DNS pour votre nom de do
 <div align="center">
     <img src="images/architecture1.png" alt="architecture" width="80%" height="80%">
 </div>
+Comme décrit dans le schéma précèdent nous avons installé le client ACME sur un serveur dédie qui s'appelle serv_admin.stecherif.fr
+Dans ce qui suit nous allons détailler les différentes étapes pour la mise en place de la solution
 
+
+## Préparation et installation du serveur serv_admin.stecherif.fr
+### 1-\ Prérequis
+> sudo apt update && apt upgrade
+
+Dans un premier lieu il faut s'assurer que python3 est installé (python2.7 génère plusieurs problèmes de dépendance)
+
+> sudo apt install python3-pip 
+
+### 2-\ Installation client ACME Certbot
+> sudo pip3 install certbot
+> sudo pip3 install --upgrade pip
+> sudo pip3 install cryptography --upgrade
+> sudo pip3 install certbot-dns-ovh
+
+### 3-\ Configuration de Certbot
+Certbot stocke son logs sous /var/log/letsencrypt. Pour éviter d'avoir un énorme log on définit une stratégie de rotation de log.Cette stratégies consiste à effacer les logs âgées de plus de 6 mois.
+> sudo nano /etc/logrotate.d/certbot
+```
+/var/log/letsencrypt/*.log {
+   monthly
+   rotate 6
+   compress
+   delaycompress
+   notifempty
+   missingok
+   create 640 root adm
+}
+```
+### 4-\ Authentification API OVH pour Defi-DNS01
+
+Comme expliqué dans la Présentation de Let's Encrypt pour avoir le certificat l'AC doit s'assurer qu'on détient le nom de Domain en proposant un défi.
+Avec le défi-DNS nous devons ajouté un enregistrement DNS du type TXT pour prouver le contrôle du nom du domaine.
+Le plugin dns_ovh automatise le processus de réalisation d'un challenge DNS01 en créant puis en supprimant des enregistrements TXT à l'aide de l'API OVH.
+
+
+L'utilisation de ce plugin nécessite un fichier de configuration contenant les identifiants de l'API OVH pour un compte avec les règles d'accès suivantes :
+```
+GET /domain/zone/*
+PUT  /domain/zone/* 
+POST  /domain/zone/* 
+DELETE  /domain/zone/*
+```
+Ces identifiants peuvent y être obtenus :
+OVH Europe
+Le résultat de l’API est le suivant :
+<div align="center">
+    <img src="images/EU.API.OVH.com.png" alt="api.ovh" width="80%" height="80%">
+</div>
 
 
 
