@@ -1,4 +1,6 @@
-**Automatisation de renouvellement de certificat  SSL avec let's encrypt**
+
+# Automatisation de renouvellement de certificat  SSL avec let's encrypt
+
 ## Présentation de Let's Encrypt
 L’objectif de Let’s Encrypt et du protocole ACME **(Automatic Certificate Management Environment)**  est de permettre la mise en place d’un serveur HTTPS et l’obtention automatique d’un certificat de confiance, reconnu nativement par les navigateurs, sans intervention humaine. Ceci est accompli en exécutant un agent de gestion de certificat sur le serveur Web.
 
@@ -145,15 +147,59 @@ for filename in files:
 ```
 Ce script est lancé par un cron après la création des certificats ce script va être lancer automatiquement :
 > 00 10 23 Feb,May,Aug,Nov * /script_python/copy_file.py
+## Les services et les scripts mis en place sur le Serveur Admin 
+### 1-\ Le service DNS 
+J’ai installé et configuré le service DNS  Bind9 dans ce serveur et j’ai crée les enregistrements DNS comme le montre la figure ci-dessous
+<div align="center">
+    <img src="images/bind9.png" alt="bind9" width="50%" height="50%">
+</div>
+
+### 2-\ l’outil d’automatisation Ansible :
+#### a-\ Configuration et installation de Ansible
+> apt update
+> apt install ansible 
+> sudo useradd ansdmin 
+> sudo passwd devops 
+> sudo nano /etc/sudoers
+```
+ansadmin        ALL=(ALL:ALL) AL
+```
+**Coté client :**
+> sudo useradd ansdmin 
+> sudo passwd devops 
+> sudo nano /etc/sudoers
+```
+ansadmin        ALL=(ALL:ALL) ALL
+```
+> sudo nano /etc/ssh/sshd_config 
+```
+#PasswordAuthentication no 
+PasswordAuthentication yes 
+```
+> sudo systemctl reload sshd
+
+> su - ansadmin 
+> [ansadmin@srvadmin ~]$ ssh-keygen
+
+> ansadmin@srvadmin ~]$ ssh-copy-id -i /home/ansadmin/.ssh/id_rsa.pub ansadmin@192.168.1.11
+
+> ansadmin@srvadmin ~]$ ssh-copy-id -i /home/ansadmin/.ssh/id_rsa.pub ansadmin@192.168.1.12
+
+> ansadmin@srvadmin ~]$ ssh-copy-id -i /home/ansadmin/.ssh/id_rsa.pub ansadmin@192.168.1.13
+
+> sudo nano /etc/ansible/hosts
+<div align="center">
+    <img src="images/hosts.png" alt="hosts" width="50%" height="50%">
+</div>
+
+#### b-\ création de playbook 
+##### 1)	Afficher les informations concernant les machines clientes :
+nano display_informations.yml
+
 
 1. Inventaire des serveurs (distribution linux redhat,debian, centos, ubuntu)
 2. Inventaire des serveurs web installé (apache, nginx et tomcat)
 3. Vérification des fichiers de conf des serveurs web
-4. Installation de Certbot sur serveur dédié pour permettre la demande du certificat wildcard au nom du domaine 
-5. Création du  fichier de configuration contenant les identifiants de l'API OVH afin d'automatiser le processus de réalisation d'un challenge DNS01 en créant puis en supprimant des enregistrements TXT à l'aide de l'API OVH
-6. Planification de la génération et du renouvellement des certificats let's encrypt avec crontab 
-7. Création d'un partage avec les certificat et montage du nouveau partage sur les serveurs web pour éviter de redistribuer les certificats
-8. Redémarrage du service sur chaque serveur web
-9. Rédaction de la documentation qui explique les differentes étapes de la réalisation du projet
+
 
 
